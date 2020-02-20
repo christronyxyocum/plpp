@@ -20,7 +20,8 @@ if (isset($_GET['cleartoken']) and isset($_SESSION['token'])) {
 // Defining constants
 define('PLPP_PATH', '');
 define('PLPP_INCLUDE_PATH', PLPP_PATH.'php/');
-define('PLPP_CONFIGURATION_PATH', PLPP_PATH.'config/');
+include_once PLPP_PATH.'secret.php';
+define('PLPP_CONFIGURATION_PATH', PLPP_PATH.'config/' . $dockerHash . '/');
 define('PLPP_LANGUAGES_PATH', PLPP_PATH.'languages/');
 define('PLPP_CSS_PATH', PLPP_PATH.'css/');
 define('PLPP_JS_PATH', PLPP_PATH.'js/');
@@ -67,26 +68,26 @@ $plppConfigurationSettings = array(
 				'name' => 'Plex Server',
 				'help' => 'IP number or domain name of the Plex Server (do not use http:// or https:// nor trailing backslash)',
 				'type' => 'string',
-				'default' => ''				
+				'default' => ''
 			),
 			'port' => array(
 				'name' => 'Plex Port',
 				'help' => 'Port number of the Plex Server (usually 32400)',
 				'type' => 'string',
-				'default' => '32400'				
+				'default' => '32400'
 			),
 			'username' => array(
 				'name' => 'Username',
 				'help' => 'Your Plex Account username',
 				'type' => 'string',
-				'default' => ''				
+				'default' => ''
 			),
 			'password' => array(
 				'name' => 'Password',
 				'help' => 'Your Plex Account password',
 				'type' => 'string',
-				'default' => ''				
-			)				
+				'default' => ''
+			)
 		)
 	),
 	'libraries' => array(
@@ -182,7 +183,7 @@ $plppConfigurationSettings = array(
 				'help' => 'Show link with debug information (CAUTION: this will expose your token!)<br />Will also turn on/off PHP error reporting',
 				'type' => 'bolean',
 				'default' => 0
-			)					
+			)
 		)
 	),
 	'general' => array(
@@ -212,7 +213,7 @@ $plppConfigurationSettings = array(
 				'help' => 'Globally Unique IDentifier of the script',
 				'type' => 'info',
 				'default' => ''
-			)				
+			)
 		)
 	)
 );
@@ -261,8 +262,8 @@ else {
 			}
 		}
 	}
-	
-	
+
+
 	// Load configuration files
 	$plppConfiguration = json_load($plppConfiguration, PLPP_CONFIGURATION_PATH, '');
 	foreach ($plppConfiguration as $key => $details) {
@@ -273,8 +274,8 @@ else {
 			// Something to do here?
 		}
 	}
-	
-	
+
+
 	// Setting Error level
 	if ($plppConfiguration['usersettings']['debug']) {
 		error_reporting(-1);
@@ -286,10 +287,10 @@ else {
 	}
 	else {
 		error_reporting(0);
-		ini_set('display_errors','Off'); 
+		ini_set('display_errors','Off');
 	}
-	
-	
+
+
 	// Generate guid if not yet set
 	if (empty($plppConfiguration['general']['script_guid'])) {
 		$plppConfiguration['general']['script_guid'] = plexAPI::generateGUID();
@@ -304,18 +305,18 @@ else {
 			}
 		}
 	}
-	
-	
+
+
 	// Saving the settings
 	if (isset($_POST['section'])) {
-	
+
 		foreach ($_POST as $key => $value) {
 			if ($key <> 'section'){
 				unset($plppConfiguration[$_POST['section']][$key]);
 				$plppConfiguration[$_POST['section']][$key] = $value;
 			}
 		}
-		
+
 		$success = json_write($plppConfiguration, PLPP_CONFIGURATION_PATH, $_POST['section']);
 		if ($success[$_POST['section']] == 'true') {
 			$plppNotifications[] = 'Configuration file "'.PLPP_CONFIGURATION_PATH.$_POST['section'].'.json" successfully saved!';
@@ -325,7 +326,7 @@ else {
 				$plppErrors[] = $value;
 			}
 		}
-	
+
 		// Reload configuration files
 		$plppConfiguration = json_load($plppConfiguration, PLPP_CONFIGURATION_PATH, '');
 		foreach ($plppConfiguration as $key => $details) {
@@ -337,7 +338,7 @@ else {
 			}
 		}
 	}
-	
+
 	// Authenticate the administrator
 	if (!isset($_SESSION['loged-in'])) {
 		if (isset($_POST['settings_password'])) {
@@ -349,8 +350,8 @@ else {
 			}
 		}
 	}
-	
-	
+
+
 	if (empty($plppConfiguration['usersettings']['admin_password'])) {
 		$plppOutput['Content'] .= '<form class="form-horizontal" action="'.PLPP_BASE_PATH.'" method="post">'.PHP_EOL;
 		$plppOutput['Content'] .= '<fieldset>'.PHP_EOL;
@@ -361,7 +362,7 @@ else {
 		$plppOutput['Content'] .= '			<input id="admin_password" name="admin_password" type="text" placeholder="" value="" class="form-control input-md" required="">'.PHP_EOL;
 		$plppOutput['Content'] .= '			<span class="help-block">Please set your Administartor Password to access the Settings section</span>'.PHP_EOL;
 		$plppOutput['Content'] .= '		</div>'.PHP_EOL;
-		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;	
+		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 		$plppOutput['Content'] .= '	<fieldset class="row form-group">'.PHP_EOL;
 		$plppOutput['Content'] .= '		<div class="col-md-1">'.PHP_EOL;
 		$plppOutput['Content'] .= '			<input type="hidden" name="section" id="section" value="usersettings">'.PHP_EOL;
@@ -369,7 +370,7 @@ else {
 		$plppOutput['Content'] .= '		<div class="col-md-4">'.PHP_EOL;
 		$plppOutput['Content'] .= '			<input class="btn btn-primary" type="submit" value="Save">'.PHP_EOL;
 		$plppOutput['Content'] .= '		</div>'.PHP_EOL;
-		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;	
+		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 		$plppOutput['Content'] .= '</fieldset>'.PHP_EOL;
 		$plppOutput['Content'] .= '</form>'.PHP_EOL;
 	}
@@ -383,22 +384,22 @@ else {
 		$plppOutput['Content'] .= '			<input id="password" name="settings_password" type="password" placeholder="" value="" class="form-control input-md" required="">'.PHP_EOL;
 		$plppOutput['Content'] .= '			<span class="help-block">Please enter your Administartor Password to access the Settings section</span>'.PHP_EOL;
 		$plppOutput['Content'] .= '		</div>'.PHP_EOL;
-		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;	
+		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 		$plppOutput['Content'] .= '	<fieldset class="form-group">'.PHP_EOL;
 		$plppOutput['Content'] .= '		<div class="col-md-1"></div>'.PHP_EOL;
 		$plppOutput['Content'] .= '		<div class="col-md-4">'.PHP_EOL;
 		$plppOutput['Content'] .= '			<input class="btn btn-primary" type="submit" value="Submit">'.PHP_EOL;
 		$plppOutput['Content'] .= '		</div>'.PHP_EOL;
-		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;	
+		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 		$plppOutput['Content'] .= '</fieldset>'.PHP_EOL;
-		$plppOutput['Content'] .= '</form>'.PHP_EOL;	
+		$plppOutput['Content'] .= '</form>'.PHP_EOL;
 	}
 	else if (isset($_SESSION['loged-in'])) {
-	
+
 		$plppOutput['Content'] .= '<form class="form-horizontal" action="'.PLPP_BASE_PATH.'?section='.$plppConfigurationSection.'" method="post">'.PHP_EOL;
 		$plppOutput['Content'] .= '<fieldset>'.PHP_EOL;
 		$plppOutput['Content'] .= '<legend>'.$plppConfigurationSettings[$plppConfigurationSection]['description'].'</legend>'.PHP_EOL;
-	
+
 		// Creating the settings menu
 		foreach($plppConfigurationSettings as $key => $value) {
 			$plppOutput['Menu'] .= '<li class="plpp_menu';
@@ -412,19 +413,19 @@ else {
 		$plppOutput['Menu'] .= '<li class="plpp_menu"><a href="'.PLPP_BASE_PATH.'?cleartoken=1"><i class="fa fa-ban fa-lg"></i>&nbsp;&nbsp;Reset Token</a></li>'.PHP_EOL;
 		$plppOutput['Menu'] .= '<li class="plpp_menu"><a href="'.PLPP_BASE_PATH.'?logout=1"><i class="fa fa-sign-out fa-lg"></i>&nbsp;&nbsp;Log out</a></li>'.PHP_EOL;
 		$plppOutput['Menu'] .= '<li class="plpp_menu"><a href="index.php"><i class="fa fa-home fa-lg"></i>&nbsp;&nbsp;Back to Frontend</a></li>'.PHP_EOL;
-	
-	
+
+
 		// Creating the settings content
 		foreach ($plppConfigurationSettings[$plppConfigurationSection]['settings'] as $key => $value) {
-			
+
 			if (isset($plppConfiguration[$plppConfigurationSection][$key])){
-				$setting_value = $plppConfiguration[$plppConfigurationSection][$key];	
+				$setting_value = $plppConfiguration[$plppConfigurationSection][$key];
 			}
 			else {
-				$setting_value = $value['default'];		
+				$setting_value = $value['default'];
 			}
-	
-			
+
+
 			switch ($value['type']) {
 				case 'string': {
 					$plppOutput['Content'] .= '	<fieldset class="form-group">'.PHP_EOL;
@@ -445,7 +446,7 @@ else {
 					$plppOutput['Content'] .= '			<span class="help-block">'.$value['help'].'</span>'.PHP_EOL;
 					$plppOutput['Content'] .= '		</div>'.PHP_EOL;
 					$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
-	
+
 					break;
 				}
 				case 'info': {
@@ -456,7 +457,7 @@ else {
 					$plppOutput['Content'] .= '			<span class="help-block">'.$value['help'].'</span>'.PHP_EOL;
 					$plppOutput['Content'] .= '		</div>'.PHP_EOL;
 					$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
-	
+
 					break;
 				}
 				case 'bolean': {
@@ -479,18 +480,18 @@ else {
 					$plppOutput['Content'] .= '			</div>'.PHP_EOL;
 					$plppOutput['Content'] .= '			<span class="help-block">'.$value['help'].'</span>'.PHP_EOL;
 					$plppOutput['Content'] .= '		</div>'.PHP_EOL;
-					$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;			
+					$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 					$plppSomethingToSave = true;
 					break;
-					
+
 				}
 				case 'library_select': {
-	
+
 					if (empty($plppConfiguration['plexserver']['domain'])) {
 						$plppErrors[count($plppErrors)] = 'Please setup Plex Server first!';
 					}
 					else {
-						
+
 						// Requesting the token if not already set in session variable (speeds up image delivery)
 						if (isset($_SESSION['token'])) {
 							$plppConfiguration['plexserver']['token'] = $_SESSION['token'];
@@ -505,8 +506,8 @@ else {
 								$_SESSION['token'] = $plex->getToken();
 							}
 						}
-	
-								
+
+
 						// Getting the xml for the plex library index
 						$plpp_libraryindex = $plex->getIndex();
 						if (empty($plpp_libraryindex)) {
@@ -534,22 +535,22 @@ else {
 									}
 									$plppOutput['Content'] .= '				<label for="'.$key.'-'.$count.'">'.PHP_EOL;
 									$plppOutput['Content'] .= '				<input type="checkbox" name="'.$key.'[]" id="'.$key.'-'.$count.'" value="'.$child['key'].'"'.$checked.'>';
-									$plppOutput['Content'] .= '				<i class="fa '.$plppConfiguration['mediatypes'][$child['type']]['icon'].'"></i>&nbsp;&nbsp;';							
+									$plppOutput['Content'] .= '				<i class="fa '.$plppConfiguration['mediatypes'][$child['type']]['icon'].'"></i>&nbsp;&nbsp;';
 									$plppOutput['Content'] .= $child['title'].'</label><br />'.PHP_EOL;
 									$count += 1;
 	//							}
 							}
-							
+
 							$plppOutput['Content'] .= '			</div>'.PHP_EOL;
 							$plppOutput['Content'] .= '			<span class="help-block">'.$value['help'].'</span>'.PHP_EOL;
 							$plppOutput['Content'] .= '		</div>'.PHP_EOL;
-							$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;			
-	
-						}		
+							$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
+
+						}
 					}
 					$plppSomethingToSave = true;
 					break;
-					
+
 				}
 				case 'single_option': {
 					$plppOutput['Content'] .= '	<fieldset class="form-group">'.PHP_EOL;
@@ -571,32 +572,32 @@ else {
 					$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 					$plppSomethingToSave = true;
 					break;
-				}			
+				}
 				default: {
-					
+
 				}
 			}
 		}
-	
+
 		$plppOutput['Content'] .= '	<fieldset class="form-group">'.PHP_EOL;
 		$plppOutput['Content'] .= '		<div class="col-md-1 control-label" for="">'.PHP_EOL;
 		$plppOutput['Content'] .= '			<input type="hidden" name="section" id="section" value="'.$plppConfigurationSection.'">'.PHP_EOL;
 		$plppOutput['Content'] .= '		</div>'.PHP_EOL;
 		$plppOutput['Content'] .= '		<div class="col-md-4">'.PHP_EOL;
 		if ($plppSomethingToSave) {
-			$plppOutput['Content'] .= '			<input class="btn btn-primary" type="submit" value="Save">'.PHP_EOL;		
+			$plppOutput['Content'] .= '			<input class="btn btn-primary" type="submit" value="Save">'.PHP_EOL;
 		}
 		$plppOutput['Content'] .= '		</div>'.PHP_EOL;
-		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;	
+		$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 		$plppOutput['Content'] .= '</fieldset>'.PHP_EOL;
 		$plppOutput['Content'] .= '</form>'.PHP_EOL;
-	
+
 	}
-	
-	
+
+
 	$plppOutput['Include'] .= '	<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">'.PHP_EOL;
 	$plppOutput['Include'] .= '	<link rel="stylesheet" type="text/css" href="css/plpp.css"/>'.PHP_EOL;
-	
+
 	$plppOutput['Title'] = $plppConfiguration['usersettings']['title'].' - Settings';
 }
 

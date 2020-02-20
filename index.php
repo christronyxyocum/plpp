@@ -4,7 +4,8 @@
 // Defining constants
 define('PLPP_PATH', '');
 define('PLPP_INCLUDE_PATH', PLPP_PATH.'php/');
-define('PLPP_CONFIGURATION_PATH', PLPP_PATH.'config/');
+include_once PLPP_PATH.'secret.php';
+define('PLPP_CONFIGURATION_PATH', PLPP_PATH.'config/' . $dockerHash . '/');
 define('PLPP_LANGUAGES_PATH', PLPP_PATH.'languages/');
 define('PLPP_CSS_PATH', PLPP_PATH.'css/');
 define('PLPP_JS_PATH', PLPP_PATH.'js/');
@@ -86,7 +87,7 @@ if ($plppConfiguration['usersettings']['debug']) {
 }
 else {
 	error_reporting(0);
-	ini_set('display_errors','Off'); 
+	ini_set('display_errors','Off');
 }
 
 
@@ -125,7 +126,7 @@ if (isset($_GET['item'])) {
 if (isset($_GET['viewmode'])) {
 	$plppViewmode = $_GET['viewmode'];
 }
-else { 
+else {
 	if (isset($_SESSION['viewmode'])) {
 		$plppViewmode = $_SESSION['viewmode'];
 	}
@@ -198,13 +199,13 @@ if (!is_writable(PLPP_IMGCACHE_PATH) && $plppConfiguration['usersettings']['cach
 
 // If Viewmode is img serve image and end script (Images can be cached to speed up image delivery)
 if ($plppViewmode == 'img') {
-	
+
 	//Get image aspect ration for thumb from mediatypes setting and calculate height of the thumb
 	$plppImageHeight = $plppImageWidth / eval('return '.$plppConfiguration['mediatypes'][$plppItemType]['imageAspectRatio'].';');
-	
+
 	// Construct the path and filename for the thumb
 	$plppImageFile = realpath(dirname(__FILE__)).'/'.PLPP_IMGCACHE_PATH.md5($plppItem.'_'.$plppImageWidth).'.jpg';
-	
+
 	// If the file exists, image refresh is disabled and caching is enabled, load the file from the cache and serve it to the browser
 	if (file_exists($plppImageFile) && !$plppConfiguration['usersettings']['refresh_images'] && $plppConfiguration['usersettings']['cache_images'] && $plppItemsFilter != 'full') {
 		$image = imagecreatefromjpeg($plppImageFile);
@@ -216,7 +217,7 @@ if ($plppViewmode == 'img') {
 	else {
 		// If full image is requested (for photo detail) we load the biggest image possible, otherwise we request the image in the thumbs width
 		$plppImageLoadWidth = ($plppItemsFilter == 'full') ? '9999' : $plppImageWidth ;;
-		
+
 		// Construct the image URL
 		$plppImageURL = $plppConfiguration['plexserver']['scheme'].'://'.$plppConfiguration['plexserver']['domain'].':'.$plppConfiguration['plexserver']['port'].'/photo/:/transcode?url=/library/metadata/'.$plppItem.'/thumb/'.$plppThumbID.'&width='.$plppImageLoadWidth.'&height=9999&X-Plex-Token='.$plex->getToken();
 
@@ -230,7 +231,7 @@ if ($plppViewmode == 'img') {
 
 		// Call the image load function
 		$plppImage = createImageFromURL($plppImageURL);
-		
+
 		// We only process the image if it is a thumb and not a full image
 		if ($plppItemsFilter != 'full') {
 
@@ -274,13 +275,13 @@ if ($plppViewmode == 'img') {
 				   // Calculate new height and width
 				   $plppThumbNewlWidth = $plppImageWidth;
 				   $plppThumbNewlHeight = $plppImageOriginalHeight / ($plppImageOriginalWidth / $plppImageWidth);
-				}			
+				}
 			}
 			// Create blank thumb
 			$plppThumb = imagecreatetruecolor( $plppImageWidth, $plppImageHeight );
 			$plppThumbBackgroundColor = imagecolorallocate($plppThumb, 34, 34, 34);
 			imagefill($plppThumb, 0, 0, $plppThumbBackgroundColor);
-		
+
 			// Resize and crop the image into the thumb
 			imagecopyresampled($plppThumb,
 				$plppImage,
@@ -289,12 +290,12 @@ if ($plppViewmode == 'img') {
 				0, 0,
 				$plppThumbNewlWidth, $plppThumbNewlHeight,
 				$plppImageOriginalWidth, $plppImageOriginalHeight);
-			
-			// Serve the thumb to the browser			
+
+			// Serve the thumb to the browser
 			header('Content-Type: image/jpeg');
 			header('Content-Disposition: inline; filename="thumb_'.$plppImageFileName.'.jpg"');
 			imagejpeg($plppThumb);
-			
+
 			// If caching is enabled, save the thumb to the cache folder
 			if (is_writable(PLPP_IMGCACHE_PATH) && $plppConfiguration['usersettings']['cache_images']) {
 				imagejpeg($plppThumb, $plppImageFile);
@@ -389,7 +390,7 @@ else {
 		$plppItems['movie'] = $plex->getRecentlyAdded('movie');
 		$plppItems['season'] = $plex->getRecentlyAdded('season');
 		$plppItems['photo'] = $plex->getRecentlyAdded('photo');
-		$plppItems['artist'] = $plex->getRecentlyAdded('artist');	
+		$plppItems['artist'] = $plex->getRecentlyAdded('artist');
 	}
 	// Else we load the requested item
 	else {
@@ -425,7 +426,7 @@ if (in_array($plppLibrarySectionID,$plppConfiguration['libraries']['excluded_lib
 	$plppItems['movie'] = $plex->getRecentlyAdded('movie');
 	$plppItems['season'] = $plex->getRecentlyAdded('season');
 	$plppItems['photo'] = $plex->getRecentlyAdded('photo');
-	$plppItems['artist'] = $plex->getRecentlyAdded('artist');	
+	$plppItems['artist'] = $plex->getRecentlyAdded('artist');
 	Foreach ($plppItems as $key => $value) {
 		if (empty($value)) {
 			$plppErrors[] = 'Could not get list of '.$key.'s! Is the Plex Server online and are the plex server setting correct??';
@@ -444,7 +445,7 @@ if (in_array($plppLibrarySectionID,$plppConfiguration['libraries']['excluded_lib
 $plppOutput['IncludeJS'] .= '	<script src="'.PLPP_JS_PATH.'trunk8.min.js"></script>'.PHP_EOL;
 
 switch ($plppViewmode) {
-	
+
 	// For the slider viewmode we include the bxslider jQuery javascript
 	case 'slider': {
 		$plppOutput['IncludeJS'] .= '	<script src="'.PLPP_JS_PATH.'jquery.bxslider.min.js"></script>'.PHP_EOL;
@@ -479,7 +480,7 @@ $plppOutput['IncludeCSS'] .= '	<link rel="stylesheet" type="text/css" href="'.PL
 
 // Generate the content
 foreach ($plppItems as $parentKey => $parent) {
-	
+
 	// Set the type of content
 	$plppViewgroupType = (!empty($parent['viewGroup'])) ? $parent['viewGroup'] : $parentKey ;;
 	if ($plppIsSearch) {
@@ -488,24 +489,24 @@ foreach ($plppItems as $parentKey => $parent) {
 	else {
 		$plexKey = (empty($plppItem)) ? $plppViewgroupType : $plppItem ;;
 	}
-	
+
 	// Start of the content output container
 	$plppOutput['Content'] .= '<div class="panel panel-default plpp_panel">'.PHP_EOL;
-	
+
 	// Start of the content header container
 	$plppOutput['Content'] .= '	<div class="panel-heading plpp_panel-heading">'.PHP_EOL;
-	
+
 	//Start of the viewmode and slider naviagtion container
-	$plppOutput['Content'] .= '		<div class="plpp_navigation_container">'.PHP_EOL;	
-	
+	$plppOutput['Content'] .= '		<div class="plpp_navigation_container">'.PHP_EOL;
+
 	// Add slider navigation if in slider viewmode
 	if ($plppViewmode == 'slider') {
 		$plppOutput['Content'] .= '			<div class="plpp_bxslide_navigation">'.PHP_EOL;
 		$plppOutput['Content'] .= '				<span class="plpp_bxslide_prev_'.$plppViewgroupType.'"></span>&nbsp;&nbsp;'.PHP_EOL;
 		$plppOutput['Content'] .= '				<span class="plpp_bxslide_next_'.$plppViewgroupType.'"></span>'.PHP_EOL;
 		$plppOutput['Content'] .= '			</div>'.PHP_EOL;
-	}		
-	
+	}
+
 	// Add links to change the viewmode
 	else if ($plppViewmode != 'details') {
 		$plppOutput['Content'] .= '			<div class="plpp_viewmode_navigation">'.PHP_EOL;
@@ -513,22 +514,22 @@ foreach ($plppItems as $parentKey => $parent) {
 		$plppOutput['Content'] .= '				<a href="'.PLPP_BASE_PATH.'?'.http_build_query($plppItemsQueryString).'&viewmode=thumbs"><i class="fa fa-th fa-lg"></i></a>&nbsp;&nbsp;'.PHP_EOL;
 		$plppOutput['Content'] .= '			</div>'.PHP_EOL;
 	}
-	
+
 	// End of navigation container
 	$plppOutput['Content'] .= '		</div>'.PHP_EOL;
-	
+
 	// Start of the breadcrumb container
-	$plppOutput['Content'] .= '		<div class="plpp_breadcrumb_container">'.PHP_EOL;	
+	$plppOutput['Content'] .= '		<div class="plpp_breadcrumb_container">'.PHP_EOL;
 	$plppOutput['Content'] .= '			<ul class="breadcrumb plpp_breadcrumb">'.PHP_EOL;
-	
+
 	// Add the home icon
 	$plppOutput['Content'] .= '				<li><a href="'.PLPP_BASE_PATH.'"><i class="fa fa-home fa-lg"></i></a></li>'.PHP_EOL;
-	
+
 	// Is there a librarySectionTitle? If yes it is the first part of the breadcrumb. It is always of type "library"
 	if (!empty($parent['librarySectionTitle'])) {
 		$plppOutput['Content'] .= '				<li><a href="'.PLPP_BASE_PATH.'?item='.$parent['librarySectionID'].'&type=library">'.$parent['librarySectionTitle'].'</a></li>'.PHP_EOL;
 	}
-	
+
 	// Is there a title1?
 	if (!empty($parent['title1'])) {
 		// If librarySectionTitle is empty title1 it is the link to the current item
@@ -537,10 +538,10 @@ foreach ($plppItems as $parentKey => $parent) {
 		}
 		// If title1 is not the same as librarySectionTitle it is the linke to the grandparent
 		else if ($parent['librarySectionTitle'] != $parent['title1']) {
-			$plppOutput['Content'] .= '				<li><a href="'.PLPP_BASE_PATH.'?item='.$parent['grandparentRatingKey'].'&type='.$parent['grandparentType'].'">'.$parent['title1'].'</a></li>'.PHP_EOL;				
+			$plppOutput['Content'] .= '				<li><a href="'.PLPP_BASE_PATH.'?item='.$parent['grandparentRatingKey'].'&type='.$parent['grandparentType'].'">'.$parent['title1'].'</a></li>'.PHP_EOL;
 		}
 	}
-	
+
 	// If there is a title2 it is always the title of the active view.
 	if (!empty($parent['title2'])) {
 		// But if it is a library, we generate the filter dropdwon menu
@@ -575,9 +576,9 @@ foreach ($plppItems as $parentKey => $parent) {
 
 	// End of header
 	$plppOutput['Content'] .= '	</div>'.PHP_EOL;
-	
+
 	// Creating the content body
-	$plppOutput['Content'] .= '	<div class="panel-body plpp_panel-body">'.PHP_EOL;	
+	$plppOutput['Content'] .= '	<div class="panel-body plpp_panel-body">'.PHP_EOL;
 
 	// Generate season, episode & artist details output if we are not in slider viewmode and if it is not a search
 	if (($plppConfiguration['mediatypes'][$plppViewgroupType]['showDetails']) && $plppViewmode != 'slider' && ($plppItemsFilter != 'albums' && $plppItemsFilter != 'recentlyAdded') && !$plppIsSearch) {
@@ -589,13 +590,13 @@ foreach ($plppItems as $parentKey => $parent) {
 		$plppOutput['Content'] .= plpp_templates($plppItems, $plppViewgroupType, 'details');
 	}
 
-	
+
 	// If we are in list viewmode we need to generate the table header
 	if ($plppViewmode == 'list') {
-		
+
 		// Start of the table
 		$plppOutput['Content'] .= '		<table class="table table-condensed table-responsive plpp_table" id="plpp_table_'.$plppViewgroupType.'">'.PHP_EOL;
-		
+
 		// Start of the table header
 		$plppOutput['Content'] .= '			<thead class="plpp_table">'.PHP_EOL;
 		$plppOutput['Content'] .= '				<tr class="plpp_table">'.PHP_EOL;
@@ -608,21 +609,21 @@ foreach ($plppItems as $parentKey => $parent) {
 		}
 		$plppOutput['Content'] .= '				</tr>'.PHP_EOL;
 		$plppOutput['Content'] .= '			</thead>'.PHP_EOL;
-		$plppOutput['Content'] .= '			<tbody class="plpp_table">'.PHP_EOL;				
+		$plppOutput['Content'] .= '			<tbody class="plpp_table">'.PHP_EOL;
 	}
 	// If we are in thumbs viewmode we need to generate the thumbs container
 	else if ($plppViewmode == 'thumbs') {
-		
+
 		// Start of thumbs container
 		$plppOutput['Content'] .= '		<div class="row plpp_thumbs_container">'.PHP_EOL;
 	}
 	// If we are in slider viewmode we need to generate the slider container
 	else if ($plppViewmode == 'slider') {
-		
+
 		// Start of slider container
-		$plppOutput['Content'] .= '		<div class="plpp_slider_container" id="plpp_bxslider_'.$plppViewgroupType.'">'.PHP_EOL;			
+		$plppOutput['Content'] .= '		<div class="plpp_slider_container" id="plpp_bxslider_'.$plppViewgroupType.'">'.PHP_EOL;
 	}
-	
+
 	// Only generate the items output if we are not in details viewmode
 	if ($plppViewmode != 'details') {
 
@@ -630,7 +631,7 @@ foreach ($plppItems as $parentKey => $parent) {
 		foreach ($parent['items'] as $childKey => $child) {
 
 			switch ($plppViewmode) {
-			
+
 				// Start thumb for thumbs view
 				case 'thumbs': {
 					$plppOutput['Content'] .= '			<div class="col-xs-1 plpp_'.$plppViewmode.'">'.PHP_EOL;
@@ -649,7 +650,7 @@ foreach ($plppItems as $parentKey => $parent) {
 					}
 					break;
 				}
-				
+
 				// Start thumb for slider view
 				case 'slider': {
 					$plppOutput['Content'] .= '			<div class="plpp_slider">'.PHP_EOL;
@@ -668,7 +669,7 @@ foreach ($plppItems as $parentKey => $parent) {
 					}
 					break;
 				}
-				
+
 				// Start row for list view
 				case 'list': {
 					$plppOutput['Content'] .= '				<tr class="plpp_table">'.PHP_EOL;
@@ -678,11 +679,11 @@ foreach ($plppItems as $parentKey => $parent) {
 
 			// Generate the actual item content
 			foreach ($plppConfiguration['mediatypes'][$child['type']]['itemList'] as $item) {
-				
+
 				if ($plex->isSetContent(0, $item['type'], $item['content'], $plexKey)) {
 					if (in_array($plppViewmode,$item['visibility'])) {
 						// For the list view we have to add the td and link tag
-						if ($plppViewmode == 'list') { 
+						if ($plppViewmode == 'list') {
 							$plppOutput['Content'] .= '					<td class="plpp_table plpp_table_'.str_replace(' ', '_', $item['name']).'">'.PHP_EOL;
 							$plppOutput['Content'] .= '						<a class="plpp_'.$plppViewmode.'" href="'.PLPP_BASE_PATH.'?item='.$child['ratingKey'].'&type='.$child['type'];
 							if ($plppConfiguration['mediatypes'][$child['type']]['isItem']) {
@@ -702,16 +703,16 @@ foreach ($plppItems as $parentKey => $parent) {
 						$plppOutput['Content'] .=  $plex->getFormatedItemsContent($childKey, $item['type'], $item['content'], $item['content_type'], $plexKey);
 						$plppOutput['Content'] .= '</span>'.PHP_EOL;
 						// For the list view we have to close the td and link tag
-						if ($plppViewmode == 'list') { 
+						if ($plppViewmode == 'list') {
 							$plppOutput['Content'] .= '						</a>'.PHP_EOL;
 							$plppOutput['Content'] .= '					</td>'.PHP_EOL;
 						}
 					}
 				}
-			}					
+			}
 
 			switch ($plppViewmode) {
-			
+
 				// Close thumb for thumbs view
 				case 'thumbs': {
 					$plppOutput['Content'] .= '				</a>'.PHP_EOL;
@@ -740,7 +741,7 @@ foreach ($plppItems as $parentKey => $parent) {
 			}
 		}
 		$plppDetails = plpp_templates($plppItems, $plppViewgroupType, 'itemdetails');
-		
+
 		// If it is an ajax request serve it to the browser and end
 		if ($plppIsModal) {
 			echo $plppDetails;
@@ -754,13 +755,13 @@ foreach ($plppItems as $parentKey => $parent) {
 
 	// If we are in thumbs viewmode we need to close the thumbs container
 	if ($plppViewmode == 'thumbs') {
-		
+
 		// End of thumbs container
 		$plppOutput['Content'] .= '		</div>'.PHP_EOL;
 	}
 	// If we are in slider viewmode we need to close the slider container and add the javascript
 	else if ($plppViewmode == 'slider') {
-		
+
 		// End of slider container
 		$plppOutput['Content'] .= '		</div>'.PHP_EOL;
 
@@ -778,13 +779,13 @@ foreach ($plppItems as $parentKey => $parent) {
 		$plppOutput['ScriptCode']  .= '				infiniteLoop: false,'.PHP_EOL;
 		$plppOutput['ScriptCode']  .= '				easing: "ease"'.PHP_EOL;
 		$plppOutput['ScriptCode']  .= '			});'.PHP_EOL;
-		
+
 	}
 	// If we are in list viewmode we need to close the table and add the javascript
 	else if ($plppViewmode == 'list') {
-		
+
 		// End of the table
-		$plppOutput['Content'] .= '			</tbody>'.PHP_EOL;	
+		$plppOutput['Content'] .= '			</tbody>'.PHP_EOL;
 		$plppOutput['Content'] .= '		</table>'.PHP_EOL;
 
 		// Add the javascript code
@@ -794,10 +795,10 @@ foreach ($plppItems as $parentKey => $parent) {
 		$plppOutput['ScriptCode']  .= '			});'.PHP_EOL;
 	}
 	// Close the content container
-	$plppOutput['Content'] .= '	</div>'.PHP_EOL;	
-	$plppOutput['Content'] .= '</div>'.PHP_EOL;	
+	$plppOutput['Content'] .= '	</div>'.PHP_EOL;
+	$plppOutput['Content'] .= '</div>'.PHP_EOL;
 }
-		
+
 
 // Close the javascript code for slider and list view
 switch ($plppViewmode) {
@@ -829,7 +830,7 @@ if ($plppIsModalLink) {
 				var target = $(this).attr("href");
 				target = target + "&modal=1";
 				// load the url and show modal on success
-				$("#plpp_Modal .modal-body").load(target, function() { 
+				$("#plpp_Modal .modal-body").load(target, function() {
 					$('#plpp_Modal').modal('handleUpdate');
 				});
 			});
@@ -851,10 +852,10 @@ END;
 			</div>
 		</div>
 	</div>
-</div>	
+</div>
 END;
 $plppOutput['Content']  .= PHP_EOL;
-	
+
 }
 
 
@@ -891,14 +892,14 @@ $plppOutput['Content'] .= '		<input type="hidden" name="search" id="search" valu
 $plppOutput['Content'] .= '		<div class="col-md-9">'.PHP_EOL;
 $plppOutput['Content'] .= '			<input id="query" name="query" type="text" placeholder="" value="" class="form-control input-md" required="">'.PHP_EOL;
 $plppOutput['Content'] .= '		</div>'.PHP_EOL;
-$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;	
+$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 $plppOutput['Content'] .= '	<fieldset class="form-group">'.PHP_EOL;
 $plppOutput['Content'] .= '		<label class="col-md-3 control-label" for="searchtype">Search for</label>'.PHP_EOL;
 $plppOutput['Content'] .= '		<div class="col-md-9">'.PHP_EOL;
 $plppOutput['Content'] .= '			<select id="searchtype" name="searchtype" class="form-control">'.PHP_EOL;
 $plppOutput['Content'] .= '				<option value="">everything</option>'.PHP_EOL;
 if ($plppItemType == 'library') {
-	$plppOutput['Content'] .= '				<option value="library">'.$plppViewgroupType.'s in current library</option>'.PHP_EOL;	
+	$plppOutput['Content'] .= '				<option value="library">'.$plppViewgroupType.'s in current library</option>'.PHP_EOL;
 }
 if (in_array('movie',$plppLibraryTypes)) {
 	$plppOutput['Content'] .= '				<option value="movie">movies in all libraries</option>'.PHP_EOL;
@@ -930,7 +931,7 @@ $plppOutput['Content'] .= '		<div class="col-md-9">'.PHP_EOL;
 $plppOutput['Content'] .= '			<input class="btn btn-primary" type="submit" value="Search">'.PHP_EOL;
 $plppOutput['Content'] .= '			<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>'.PHP_EOL;
 $plppOutput['Content'] .= '		</div>'.PHP_EOL;
-$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;	
+$plppOutput['Content'] .= '	</fieldset>'.PHP_EOL;
 $plppOutput['Content'] .= '</fieldset>'.PHP_EOL;
 $plppOutput['Content'] .= '</form>'.PHP_EOL;
 $plppOutput['Content']  .= <<<END
@@ -987,7 +988,7 @@ END;
 	$plppOutput['Content']  .= '$plppItem = '.$plppItem;
 	$plppOutput['Content']  .= PHP_EOL;
 	$plppOutput['Content']  .= '$plppItemType = '.$plppItemType.PHP_EOL;
-	$plppOutput['Content']  .= '$plppViewgroupType = '.$plppViewgroupType.PHP_EOL;	
+	$plppOutput['Content']  .= '$plppViewgroupType = '.$plppViewgroupType.PHP_EOL;
 	$plppOutput['Content']  .= '$plppViewmode = '.$plppViewmode.PHP_EOL;
 	$plppOutput['Content']  .= '$plppItemsFilter = '.$plppItemsFilter.PHP_EOL;
 	$plppOutput['Content']  .= '$plppItemsQuery = '.$plppItemsQuery.PHP_EOL;
