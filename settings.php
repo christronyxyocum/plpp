@@ -22,8 +22,6 @@ define('PLPP_PATH', '');
 define('PLPP_INCLUDE_PATH', PLPP_PATH.'php/');
 include_once PLPP_PATH.'secret.php';
 define('PLPP_CONFIGURATION_PATH', PLPP_PATH.'config/' . $dockerHash . '/');
-$dirMode = 0777;
-mkdir($PLPP_CONFIGURATION_PATH, $dirMode, true);
 define('PLPP_LANGUAGES_PATH', PLPP_PATH.'languages/');
 define('PLPP_CSS_PATH', PLPP_PATH.'css/');
 define('PLPP_JS_PATH', PLPP_PATH.'js/');
